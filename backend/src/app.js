@@ -30,6 +30,14 @@ app.get("/api", (req, res) => {
     return res.json({ user: req.user || null });
 });
 
+app.get("/api/health", (req, res) => {
+    return res.status(200).json({
+        status: "OK",
+        message: "Server is running",
+        timestamp: new Date().toISOString()
+    });
+});
+
 app.use("/api/user", userRouter);
 app.use("/api/items", itemRouter);
 

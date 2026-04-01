@@ -1,0 +1,96 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
+        DOCKER_HUB_REPO = 'eightbitsystem3' // Replace with your Docker Hub username
+        BACKEND_IMAGE = "${DOCKER_HUB_REPO}/mern-backend"
+        FRONTEND_IMAGE = "${DOCKER_HUB_REPO}/mern-frontend"
+        MONGO_IMAGE = "${DOCKER_HUB_REPO}/mern-mongo"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Cloning repository...'
+                checkout scm
+            }
+        }
+
+        stage('Build Backend Image') {
+            steps {
+                echo 'Building backend Docker image...'
+                dir('backend') {
+                    sh "docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} ."
+                    sh "docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${BACKEND_IMAGE}:latest"
+                }
+            }
+        }
+
+        stage('Build Frontend Image') {
+            steps {
+                echo 'Building frontend Docker image...'
+                dir('frontend') {
+                    sh "docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} ."
+                    sh "docker tag ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${FRONTEND_IMAGE}:latest"
+                }
+            }
+        }
+
+        stage('Build MongoDB Image') {
+            steps {
+                echo 'Building MongoDB Docker image...'
+                sh "docker build -f Dockerfile.mongo -t ${MONGO_IMAGE}:${BUILD_NUMBER} ."
+                sh "docker tag ${MONGO_IMAGE}:${BUILD_NUMBER} ${MONGO_IMAGE}:latest"
+            }
+        }
+
+        stage('Login to Docker Hub') {
+            steps {
+                echo 'Logging into Docker Hub...'
+                sh "echo ${DOCKER_HUB_CREDENTIALS_PSW} | docker login -u ${DOCKER_HUB_CREDENTIALS_USR} --password-stdin"
+            }
+        }
+
+        stage('Push Images to Docker Hub') {
+            steps {
+                echo 'Pushing images to Docker Hub...'
+
+                // Push backend images
+                sh "docker push ${BACKEND_IMAGE}:${BUILD_NUMBER}"
+                sh "docker push ${BACKEND_IMAGE}:latest"
+
+                // Push frontend images
+                sh "docker push ${FRONTEND_IMAGE}:${BUILD_NUMBER}"
+                sh "docker push ${FRONTEND_IMAGE}:latest"
+
+                // Push MongoDB images
+                sh "docker push ${MONGO_IMAGE}:${BUILD_NUMBER}"
+                sh "docker push ${MONGO_IMAGE}:latest"
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                echo 'Cleaning up local Docker images...'
+                sh "docker rmi ${BACKEND_IMAGE}:${BUILD_NUMBER} ${BACKEND_IMAGE}:latest"
+                sh "docker rmi ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${FRONTEND_IMAGE}:latest"
+                sh "docker rmi ${MONGO_IMAGE}:${BUILD_NUMBER} ${MONGO_IMAGE}:latest"
+                sh "docker system prune -f"
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline completed.'
+            sh 'docker logout'
+        }
+        success {
+            echo 'Pipeline succeeded! Images pushed to Docker Hub.'
+        }
+        failure {
+            echo 'Pipeline failed! Check the logs for details.'
+        }
+    }
+}
