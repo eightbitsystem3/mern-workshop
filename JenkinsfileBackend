@@ -5,7 +5,6 @@ pipeline {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-credentials')
         DOCKER_HUB_REPO = 'eightbitsystem3' // Replace with your Docker Hub username
         BACKEND_IMAGE = "${DOCKER_HUB_REPO}/mern-backend"
-        FRONTEND_IMAGE = "${DOCKER_HUB_REPO}/mern-frontend"
         MONGO_IMAGE = "${DOCKER_HUB_REPO}/mern-mongo"
     }
 
@@ -23,16 +22,6 @@ pipeline {
                 dir('backend') {
                     sh "docker build -t ${BACKEND_IMAGE}:${BUILD_NUMBER} ."
                     sh "docker tag ${BACKEND_IMAGE}:${BUILD_NUMBER} ${BACKEND_IMAGE}:latest"
-                }
-            }
-        }
-
-        stage('Build Frontend Image') {
-            steps {
-                echo 'Building frontend Docker image...'
-                dir('frontend') {
-                    sh "docker build -t ${FRONTEND_IMAGE}:${BUILD_NUMBER} ."
-                    sh "docker tag ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${FRONTEND_IMAGE}:latest"
                 }
             }
         }
@@ -60,10 +49,6 @@ pipeline {
                 sh "docker push ${BACKEND_IMAGE}:${BUILD_NUMBER}"
                 sh "docker push ${BACKEND_IMAGE}:latest"
 
-                // Push frontend images
-                sh "docker push ${FRONTEND_IMAGE}:${BUILD_NUMBER}"
-                sh "docker push ${FRONTEND_IMAGE}:latest"
-
                 // Push MongoDB images
                 sh "docker push ${MONGO_IMAGE}:${BUILD_NUMBER}"
                 sh "docker push ${MONGO_IMAGE}:latest"
@@ -74,9 +59,7 @@ pipeline {
             steps {
                 echo 'Cleaning up local Docker images...'
                 sh "docker rmi ${BACKEND_IMAGE}:${BUILD_NUMBER} ${BACKEND_IMAGE}:latest"
-                sh "docker rmi ${FRONTEND_IMAGE}:${BUILD_NUMBER} ${FRONTEND_IMAGE}:latest"
                 sh "docker rmi ${MONGO_IMAGE}:${BUILD_NUMBER} ${MONGO_IMAGE}:latest"
-                sh "docker system prune -f"
             }
         }
     }
