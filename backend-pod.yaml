@@ -7,8 +7,8 @@ metadata:
 spec:
   containers:
   - name: backend
-    image: mern-backend:latest
-    imagePullPolicy: Never
+    image: eightbitsystem3/mern-backend:latest
+    imagePullPolicy: Always
     ports:
     - containerPort: 8000
     env:

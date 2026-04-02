@@ -7,7 +7,7 @@ metadata:
 spec:
   containers:
     - name: frontend
-      image: mern-frontend:latest
-      imagePullPolicy: Never
+      image: eightbitsystem3/mern-frontend:latest
+      imagePullPolicy: Always
       ports:
         - containerPort: 3000
