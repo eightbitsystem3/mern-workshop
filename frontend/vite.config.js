@@ -8,7 +8,7 @@ export default defineConfig({
     // port: 3000,
     proxy: {
       "/api": {
-        target: process.env.API_BASE_URL || "http://localhost:8000",
+        target: process.env.API_BASE_URL || "http://mern-backend:8000",
         changeOrigin: true,
       },
     },

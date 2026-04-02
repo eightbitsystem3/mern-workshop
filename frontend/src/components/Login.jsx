@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useNavigate } from 'react-router';
 
 const Login = () => {
@@ -11,7 +11,7 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('/api/user/login', formData);
+            const res = await api.post('/api/user/login', formData);
             alert(res.data.message);
             navigate('/dashboard');
         } catch (err) {
