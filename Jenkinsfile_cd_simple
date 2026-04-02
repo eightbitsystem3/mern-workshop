@@ -1,102 +1,92 @@
 pipeline {
-    agent any
-
-    stages {
-        stage('Checkout') {
-            steps {
-                echo 'Checking out repository...'
-                checkout scm
-            }
-        }
-
-        stage('Verify Setup') {
-            steps {
-                echo 'Verifying Kubernetes and Minikube setup...'
-                sh 'kubectl cluster-info'
-                sh 'minikube ip'
-            }
-        }
-
-        stage('Deploy Backend') {
-            steps {
-                echo 'Deploying backend to Kubernetes...'
-                sh '''
-                    # Delete existing backend pod if it exists
-                    kubectl delete pod mern-backend --ignore-not-found=true
-                    
-                    # Apply backend service
-                    kubectl apply -f backend-service.yaml
-                    
-                    # Apply backend pod with Docker Hub image
-                    kubectl apply -f backend-pod.yaml
-                    
-                    # Wait for pod to be ready
-                    kubectl wait --for=condition=ready pod/mern-backend --timeout=300s
-                '''
-            }
-        }
-
-        stage('Deploy Frontend') {
-            steps {
-                echo 'Deploying frontend to Kubernetes...'
-                sh '''
-                    # Delete existing frontend pod if it exists
-                    kubectl delete pod mern-frontend --ignore-not-found=true
-                    
-                    # Apply frontend service
-                    kubectl apply -f frontend-service.yaml
-                    
-                    # Apply frontend pod with Docker Hub image
-                    kubectl apply -f frontend-pod.yaml
-                    
-                    # Wait for pod to be ready
-                    kubectl wait --for=condition=ready pod/mern-frontend --timeout=300s
-                '''
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                echo 'Verifying deployment...'
-                sh '''
-                    echo "Checking pods..."
-                    kubectl get pods
-                    
-                    echo "Checking services..."
-                    kubectl get services
-                    
-                    echo "Deployment completed!"
-                '''
-            }
-        }
-
-        stage('Display Access Info') {
-            steps {
-                echo 'Displaying access information...'
-                sh '''
-                    echo "==================================="
-                    echo "MERN App Deployed Successfully!"
-                    echo "==================================="
-                    echo "Minikube IP: $(minikube ip)"
-                    echo ""
-                    echo "Frontend: http://$(minikube ip):30007"
-                    echo "Backend:  http://$(minikube ip):30008"
-                    echo ""
-                    echo "Local Testing:"
-                    echo "  kubectl port-forward svc/mern-frontend-service 3000:80"
-                    echo "  kubectl port-forward svc/mern-backend 8000:8000"
-                    echo "==================================="
-                '''
-            }
+agent any
+environment {
+    KUBECONFIG = "/var/lib/jenkins/.kube/config"
+}
+stages {
+    stage('Checkout') {
+        steps {
+            echo 'Checking out repository...'
+            checkout scm
         }
     }
-
-    post {
-        success {
-            echo 'CD Pipeline completed successfully!'
-        }
-        failure {
-            echo 'CD Pipeline failed! Check logs above.'
+    stage('Verify / Start Minikube') {
+        steps {
+            echo 'Ensuring Minikube is running...'
+            sh '''
+                minikube status || minikube start --driver=docker
+                echo "Cluster Info:"
+                kubectl cluster-info
+                echo "Nodes:"
+                kubectl get nodes
+            '''
         }
     }
+    stage('Deploy Backend') {
+        steps {
+            echo 'Deploying backend...'
+            sh '''
+                echo "Cleaning old backend..."
+                kubectl delete pod mern-backend --ignore-not-found=true
+                echo "Applying backend service..."
+                kubectl apply -f backend-service.yaml
+                echo "Applying backend pod..."
+                kubectl apply -f backend-pod.yaml
+                echo "Waiting for backend pod..."
+                kubectl wait --for=condition=ready pod/mern-backend --timeout=300s
+            '''
+        }
+    }
+    stage('Deploy Frontend') {
+        steps {
+            echo 'Deploying frontend...'
+            sh '''
+                echo "Cleaning old frontend..."
+                kubectl delete pod mern-frontend --ignore-not-found=true
+                echo "Applying frontend service..."
+                kubectl apply -f frontend-service.yaml
+                echo "Applying frontend pod..."
+                kubectl apply -f frontend-pod.yaml
+                echo "Waiting for frontend pod..."
+                kubectl wait --for=condition=ready pod/mern-frontend --timeout=300s
+            '''
+        }
+    }
+    stage('Verify Deployment') {
+        steps {
+            echo 'Verifying deployment...'
+            sh '''
+                echo "Pods:"
+                kubectl get pods -o wide
+                echo "Services:"
+                kubectl get svc
+                echo "==================================="
+                echo "Deployment Successful!"
+                echo "==================================="
+            '''
+        }
+    }
+    stage('Display Access Info') {
+        steps {
+            echo 'Access details:'
+            sh '''
+                IP=$(minikube ip)
+                echo "==================================="
+                echo "MERN App Live"
+                echo "==================================="
+                echo "Frontend: http://$IP:30007"
+                echo "Backend:  http://$IP:30008"
+                echo "==================================="
+            '''
+        }
+    }
+}
+post {
+    success {
+        echo 'CD Pipeline completed successfully!'
+    }
+    failure {
+        echo 'CD Pipeline failed! Check logs above.'
+    }
+}
 }
