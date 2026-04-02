@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import express from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import { dbconnect } from "./utils/db-con.js";
 import { isLoggedInCheck } from "./middlewares/auth.js";
 
@@ -19,6 +20,10 @@ const MONGODB_URI = process.env.MONGO_URI;
 dbconnect(MONGODB_URI);
 
 // Middlewares
+app.use(cors({
+    origin: 'http://192.168.49.2:30007',
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -28,6 +33,14 @@ app.use(isLoggedInCheck);
 // Routes
 app.get("/api", (req, res) => {
     return res.json({ user: req.user || null });
+});
+
+app.get("/api/health", (req, res) => {
+    return res.status(200).json({
+        status: "OK",
+        message: "Server is running",
+        timestamp: new Date().toISOString()
+    });
 });
 
 app.use("/api/user", userRouter);

@@ -1,0 +1,61 @@
+#######################################
+
+1. Build Docker Images
+
+# Build backend image
+docker compose build backend
+
+# Build frontend image
+docker compose build frontend
+
+#######################################
+
+2. Start All Services
+
+docker compose up -d
+
+#######################################
+
+3. Stop All Services
+
+docker compose down
+
+#######################################
+
+4. View Running Containers
+
+docker ps
+
+#######################################
+
+5. View Backend Logs
+
+docker compose logs backend
+
+#######################################
+
+6. View Frontend Logs
+
+docker compose logs frontend
+
+#######################################
+
+7. Access MongoDB Shell
+
+docker exec -it mern-mongo mongosh -u admin -p password --authenticationDatabase admin
+
+#######################################
+
+8. Rebuild a Single Service (if you change code)
+
+docker compose build backend
+docker compose build frontend
+
+#######################################
+
+9. Restart a Single Service
+
+docker compose restart backend
+docker compose restart frontend
+
+#######################################
