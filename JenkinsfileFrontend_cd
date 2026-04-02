@@ -1,0 +1,24 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_HUB_REPO = 'eightbitsystem3' // Replace with your Docker Hub username
+        FRONTEND_IMAGE = "${DOCKER_HUB_REPO}/mern-frontend"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Cloning repository...'
+                checkout scm
+            }
+        }
+
+        stage('Deploy Frontend Pod') {
+            steps {
+                echo 'Deploying frontend pod to Kubernetes...'
+                sh 'kubectl apply -f frontend-pod.yaml'
+            }
+        }
+    }
+}

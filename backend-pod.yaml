@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mern-backend
+spec:
+  containers:
+  - name: backend
+    image: eightbitsystem3/mern-backend:latest
+    ports:
+    - containerPort: 8000
+    env:
+    - name: NODE_ENV
+      value: "production"
