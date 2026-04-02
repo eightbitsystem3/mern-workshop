@@ -25,6 +25,13 @@ pipeline {
             }
         }
 
+      stage('Test') {
+            steps {
+                echo 'Test run repository...'
+                
+            }
+        }
+
         stage('Login to Docker Hub') {
             steps {
                 echo 'Logging into Docker Hub...'
