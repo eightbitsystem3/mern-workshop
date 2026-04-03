@@ -1,0 +1,85 @@
+pipeline {
+    agent any
+
+    environment {
+        KUBECONFIG = "C:\\ProgramData\\Jenkins\\.kube\\config"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo 'Checking out repository...'
+                checkout scm
+            }
+        }
+
+        stage('Verify Kubernetes Cluster') { 
+            steps { 
+                echo 'Checking Kubernetes cluster (Docker Desktop)...' 
+                bat ''' 
+                    kubectl cluster-info 
+                    kubectl get nodes 
+                ''' 
+            } 
+        }
+
+        stage('Deploy Backend') {
+            steps {
+                echo 'Deploying backend...'
+                bat '''
+                    echo Applying backend service...
+                    kubectl apply -f backend-service.yaml
+
+                    echo Applying backend deployment...
+                    kubectl apply -f backend-deployment.yaml
+
+                    echo Waiting for backend rollout...
+                    kubectl rollout status deployment/mern-backend --timeout=300s || exit /b 1
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                echo 'Verifying deployment...'
+                bat '''
+                    echo Deployments:
+                    kubectl get deployments -A
+
+                    echo Pods:
+                    kubectl get pods -A -o wide
+
+                    echo Services:
+                    kubectl get svc -A
+
+                    echo ===================================
+                    echo Deployment Successful!
+                    echo ===================================
+                '''
+            }
+        }
+
+        stage('Display Access Info') {
+            steps {
+                echo 'Access details:'
+                bat '''
+                    echo ===================================
+                    echo MERN App Live (Docker Desktop K8s)
+                    echo ===================================
+                    echo Backend:  http://localhost:30008
+                    echo ===================================
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CD Pipeline completed successfully!'
+        }
+        failure {
+            echo 'CD Pipeline failed! Check logs above.'
+        }
+    }
+}

@@ -24,22 +24,6 @@ pipeline {
             } 
         }
 
-        stage('Deploy Backend') {
-            steps {
-                echo 'Deploying backend...'
-                bat '''
-                    echo Applying backend service...
-                    kubectl apply -f backend-service.yaml
-
-                    echo Applying backend deployment...
-                    kubectl apply -f backend-deployment.yaml
-
-                    echo Waiting for backend rollout...
-                    kubectl rollout status deployment/mern-backend --timeout=300s || exit /b 1
-                '''
-            }
-        }
-
         stage('Deploy Frontend') {
             steps {
                 echo 'Deploying frontend...'
@@ -84,7 +68,6 @@ pipeline {
                     echo MERN App Live (Docker Desktop K8s)
                     echo ===================================
                     echo Frontend: http://localhost:30007
-                    echo Backend:  http://localhost:30008
                     echo ===================================
                 '''
             }
