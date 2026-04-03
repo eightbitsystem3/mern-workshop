@@ -1,14 +1,5 @@
 install & run prometheus in docker;
 
-kubectl get pods --namespace=monitoring
-
-docker run --name prometheus -d -p 127.0.0.1:9090:9090 prom/prometheus
-
-install grafana:
-
-docker run -d --name=grafana -p 3000:3000 grafana/grafana:6.3.0
-
-
 kubectl create namespace monitoring
 kubectl apply -f node-exporter-deployment.yaml
 kubectl apply -f node-exporter-service.yaml
