@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mern-backend
+spec:
+  replicas: 2   # backend usually doesn't need too many replicas initially
+  selector:
+    matchLabels:
+      app: mern-backend
+  template:
+    metadata:
+      labels:
+        app: mern-backend
+    spec:
+      containers:
+      - name: backend
+        image: eightbitsystem3/mern-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: MONGO_URI
+          value: "mongodb+srv://host.docker.internal:27017/interns?retryWrites=true&w=majority"
+        - name: JWT_SECRET
+          value: "843uitjkgdu879578rtjjkdfdfjkmcvxkjdfjwqxhksdkl"
