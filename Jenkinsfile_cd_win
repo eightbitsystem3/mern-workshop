@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // FIX 1: Use system-level kubeconfig (accessible by Jenkins service)
         KUBECONFIG = "C:\\ProgramData\\Jenkins\\.kube\\config"
     }
 
@@ -16,29 +15,27 @@ pipeline {
         }
 
         stage('Verify Kubernetes Cluster') { 
-        steps { 
-            echo 'Checking Kubernetes cluster (Docker Desktop)...' 
-            bat ''' 
-                    kubectl cluster-info kubectl get nodes 
+            steps { 
+                echo 'Checking Kubernetes cluster (Docker Desktop)...' 
+                bat ''' 
+                    kubectl cluster-info 
+                    kubectl get nodes 
                 ''' 
-              } 
+            } 
         }
 
         stage('Deploy Backend') {
             steps {
                 echo 'Deploying backend...'
                 bat '''
-                    echo Cleaning old backend...
-                    kubectl delete pod mern-backend --ignore-not-found=true
-
                     echo Applying backend service...
                     kubectl apply -f backend-service.yaml
 
-                    echo Applying backend pod...
-                    kubectl apply -f backend-pod.yaml
+                    echo Applying backend deployment...
+                    kubectl apply -f backend-deployment.yaml
 
-                    echo Waiting for backend pod...
-                    kubectl wait --for=condition=ready pod/mern-backend --timeout=300s || exit /b 1
+                    echo Waiting for backend rollout...
+                    kubectl rollout status deployment/mern-backend --timeout=300s || exit /b 1
                 '''
             }
         }
@@ -47,17 +44,14 @@ pipeline {
             steps {
                 echo 'Deploying frontend...'
                 bat '''
-                    echo Cleaning old frontend...
-                    kubectl delete pod mern-frontend --ignore-not-found=true
-
                     echo Applying frontend service...
                     kubectl apply -f frontend-service.yaml
 
-                    echo Applying frontend pod...
-                    kubectl apply -f frontend-pod.yaml
+                    echo Applying frontend deployment...
+                    kubectl apply -f frontend-deployment.yaml
 
-                    echo Waiting for frontend pod...
-                    kubectl wait --for=condition=ready pod/mern-frontend --timeout=300s || exit /b 1
+                    echo Waiting for frontend rollout...
+                    kubectl rollout status deployment/mern-frontend --timeout=300s || exit /b 1
                 '''
             }
         }
@@ -66,6 +60,9 @@ pipeline {
             steps {
                 echo 'Verifying deployment...'
                 bat '''
+                    echo Deployments:
+                    kubectl get deployments -A
+
                     echo Pods:
                     kubectl get pods -A -o wide
 
