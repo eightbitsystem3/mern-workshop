@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // FIX 1: Use system-level kubeconfig (accessible by Jenkins service)
-        KUBECONFIG = "C:\\Users\\%USERNAME%\\.kube\\config"
+        KUBECONFIG = "C:\\ProgramData\\Jenkins\\.kube\\config"
     }
 
     stages {
