@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        KUBECONFIG = "C:\\Users\\%USERNAME%\\.kube\\config"
+        // FIX 1: Use system-level kubeconfig (accessible by Jenkins service)
+        KUBECONFIG = "C:\\ProgramData\\Jenkins\\.kube\\config"
     }
 
     stages {
@@ -18,7 +19,13 @@ pipeline {
             steps {
                 echo 'Checking Kubernetes cluster (Docker Desktop)...'
                 bat '''
+                    echo Current Context:
+                    kubectl config current-context
+
+                    echo Cluster Info:
                     kubectl cluster-info
+
+                    echo Nodes:
                     kubectl get nodes
                 '''
             }
@@ -38,7 +45,7 @@ pipeline {
                     kubectl apply -f backend-pod.yaml
 
                     echo Waiting for backend pod...
-                    kubectl wait --for=condition=ready pod/mern-backend --timeout=300s
+                    kubectl wait --for=condition=ready pod/mern-backend --timeout=300s || exit /b 1
                 '''
             }
         }
@@ -57,7 +64,7 @@ pipeline {
                     kubectl apply -f frontend-pod.yaml
 
                     echo Waiting for frontend pod...
-                    kubectl wait --for=condition=ready pod/mern-frontend --timeout=300s
+                    kubectl wait --for=condition=ready pod/mern-frontend --timeout=300s || exit /b 1
                 '''
             }
         }
@@ -67,10 +74,10 @@ pipeline {
                 echo 'Verifying deployment...'
                 bat '''
                     echo Pods:
-                    kubectl get pods -o wide
+                    kubectl get pods -A -o wide
 
                     echo Services:
-                    kubectl get svc
+                    kubectl get svc -A
 
                     echo ===================================
                     echo Deployment Successful!
