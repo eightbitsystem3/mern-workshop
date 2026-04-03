@@ -1,0 +1,105 @@
+pipeline {
+    agent any
+
+    environment {
+        KUBECONFIG = "C:\\Users\\%USERNAME%\\.kube\\config"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo 'Checking out repository...'
+                checkout scm
+            }
+        }
+
+        stage('Verify Kubernetes Cluster') {
+            steps {
+                echo 'Checking Kubernetes cluster (Docker Desktop)...'
+                bat '''
+                    kubectl cluster-info
+                    kubectl get nodes
+                '''
+            }
+        }
+
+        stage('Deploy Backend') {
+            steps {
+                echo 'Deploying backend...'
+                bat '''
+                    echo Cleaning old backend...
+                    kubectl delete pod mern-backend --ignore-not-found=true
+
+                    echo Applying backend service...
+                    kubectl apply -f backend-service.yaml
+
+                    echo Applying backend pod...
+                    kubectl apply -f backend-pod.yaml
+
+                    echo Waiting for backend pod...
+                    kubectl wait --for=condition=ready pod/mern-backend --timeout=300s
+                '''
+            }
+        }
+
+        stage('Deploy Frontend') {
+            steps {
+                echo 'Deploying frontend...'
+                bat '''
+                    echo Cleaning old frontend...
+                    kubectl delete pod mern-frontend --ignore-not-found=true
+
+                    echo Applying frontend service...
+                    kubectl apply -f frontend-service.yaml
+
+                    echo Applying frontend pod...
+                    kubectl apply -f frontend-pod.yaml
+
+                    echo Waiting for frontend pod...
+                    kubectl wait --for=condition=ready pod/mern-frontend --timeout=300s
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                echo 'Verifying deployment...'
+                bat '''
+                    echo Pods:
+                    kubectl get pods -o wide
+
+                    echo Services:
+                    kubectl get svc
+
+                    echo ===================================
+                    echo Deployment Successful!
+                    echo ===================================
+                '''
+            }
+        }
+
+        stage('Display Access Info') {
+            steps {
+                echo 'Access details:'
+                bat '''
+                    echo ===================================
+                    echo MERN App Live (Docker Desktop K8s)
+                    echo ===================================
+                    echo Frontend: http://localhost:30007
+                    echo Backend:  http://localhost:30008
+                    echo ===================================
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CD Pipeline completed successfully!'
+        }
+        failure {
+            echo 'CD Pipeline failed! Check logs above.'
+        }
+    }
+}
