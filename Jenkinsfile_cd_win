@@ -15,22 +15,7 @@ pipeline {
             }
         }
 
-        stage('Verify Kubernetes Cluster') {
-            steps {
-                echo 'Checking Kubernetes cluster (Docker Desktop)...'
-                bat '''
-                    echo Current Context:
-                    kubectl config current-context
-
-                    echo Cluster Info:
-                    kubectl cluster-info
-
-                    echo Nodes:
-                    kubectl get nodes
-                '''
-            }
-        }
-
+        
         stage('Deploy Backend') {
             steps {
                 echo 'Deploying backend...'
