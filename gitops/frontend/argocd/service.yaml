@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mern-frontend-service
-  namespace: default
+  namespace: mern
 spec:
   type: NodePort
   selector:

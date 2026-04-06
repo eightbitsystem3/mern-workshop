@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mern-backend
-  namespace: default
+  namespace: mern
 spec:
   replicas: 2   # backend usually doesn't need too many replicas initially
   selector:
