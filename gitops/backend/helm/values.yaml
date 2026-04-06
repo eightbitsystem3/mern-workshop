@@ -1,0 +1,18 @@
+image:
+  repository: eightbitsystem3/mern-backend
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: NodePort
+  port: 8000
+  nodePort: 30008
+
+containerPort: 8000
+
+replicaCount: 2
+
+env:
+  NODE_ENV: production
+  MONGO_URI: mongodb+srv://host.docker.internal:27017/interns?retryWrites=true&w=majority
+  JWT_SECRET: 843uitjkgdu879578rtjjkdfdfjkmcvxkjdfjwqxhksdkl

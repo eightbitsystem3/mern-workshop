@@ -1,0 +1,13 @@
+image:
+  repository: eightbitsystem3/mern-frontend
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: NodePort
+  port: 3000
+  nodePort: 30007
+
+containerPort: 80
+
+replicaCount: 3
