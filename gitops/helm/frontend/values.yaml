@@ -9,3 +9,5 @@ service:
   nodePort: 30007
 
 containerPort: 80
+
+replicaCount: 3

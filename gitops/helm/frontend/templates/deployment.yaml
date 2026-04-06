@@ -1,21 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mern-frontend
-  namespace: mern
+  name: {{ include "mern-frontend.fullname" . }}
 spec:
-  replicas: 3   # You can change this based on your need
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: mern-frontend
+      app: {{ include "mern-frontend.name" . }}
   template:
     metadata:
       labels:
-        app: mern-frontend
+        app: {{ include "mern-frontend.name" . }}
     spec:
       containers:
         - name: frontend
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.containerPort }}
